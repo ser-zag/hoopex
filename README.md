@@ -27,3 +27,8 @@ convenient to have an application that has all of these features
 in one place, which exactly what HoopEx Helper will help you with!
 
 
+## User Stories
+- As a user, I want to add a completed basketball workout to my workout history
+- As a user, I want to view my workout history
+- As a user, I want to track the progress of my workout history
+- As a user, I want to track how far I am from my desired goals
