@@ -4,31 +4,62 @@ import java.time.Duration;
 import java.util.List;
 import java.util.ArrayList;
 
-// Represents a history of completed basketball workouts.
+/**
+ * Represents a history of completed workouts.
+ */
 public class WorkoutHistory {
+
     private List<Workout> workouts;
 
+    /**
+     * Creates a new workout history with an empty list of workouts.
+     *
+     * REQUIRES: none
+     * MODIFIES: this
+     * EFFECTS: creates a new workout history with an empty list of workouts
+     */
     public WorkoutHistory() {
-        // Modifies: this object.
-        // Effects: creates a new, empty WorkoutHistory object.
-        this.workouts = new ArrayList<>();
+        workouts = new ArrayList<>();
     }
 
+    /**
+     * Adds a completed workout to this history.
+     *
+     * REQUIRES: workout is not null
+     * MODIFIES: this
+     * EFFECTS: adds the given workout to this history
+     */
     public void addWorkout(Workout workout) {
-        // Requires: workout is not null.
-        // Modifies: this object.
-        // Effects: adds the specified workout to this workout history.
         workouts.add(workout);
     }
 
+    /**
+     * Returns the list of completed workouts in this history.
+     *
+     * REQUIRES: none
+     * MODIFIES: none
+     * EFFECTS: returns the list of completed workouts in this history
+     */
     public List<Workout> getWorkouts() {
-        // Effects: returns a list of all workouts in this workout history.
         return workouts;
     }
 
-    public Duration getTotalDuration() {
-        // Effects: returns the total duration of all workouts in this workout history.
-        return workouts.stream().map(Workout::getDuration).reduce(Duration.ZERO, Duration::plus);
-    }
+    /**
+     * Returns the total duration of all completed workouts in this history.
+     *
+     * REQUIRES: none
+     * MODIFIES: none
+     * EFFECTS: returns the total duration of all completed workouts in this history
+     */
+    public int getTotalDuration() {
+        int totalDuration = 0;
 
+        for (Workout workout : workouts) {
+            totalDuration += workout.getDuration();
+        }
+
+        return totalDuration;
+    }
 }
+
+
