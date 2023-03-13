@@ -44,6 +44,11 @@ public class WorkoutHistory implements Writable {
      * MODIFIES: none
      * EFFECTS: returns the list of completed workouts in this history
      */
+
+    public Workout getWorkout(int index) {
+        return workouts.get(index);
+    }
+
     public List<Workout> getWorkouts() {
         return workouts;
     }
