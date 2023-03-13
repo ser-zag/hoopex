@@ -32,3 +32,5 @@ in one place, which exactly what HoopEx Helper will help you with!
 - As a user, I want to view my workout history
 - As a user, I want to track the progress of my workout history
 - As a user, I want to track how far I am from my desired goals
+- As a user, I want to be able to save my basketball workout history to file (if I so choose)
+- As a user, I want to be able to load my basketball workout history from file (if I so choose)

@@ -3,11 +3,13 @@ package model;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import org.json.JSONObject;
+import persistence.Writable;
 
 /**
  * Represents a workout with a name, date, and duration.
  */
-public class Workout {
+public class Workout implements Writable {
 
     private String name;
     private LocalDate date;
@@ -69,5 +71,14 @@ public class Workout {
     @Override
     public String toString() {
         return String.format("%s (%s): %d minutes", name, date, duration);
+    }
+
+    @Override
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("name", name);
+        json.put("date", date);
+        json.put("duration", duration);
+        return json;
     }
 }

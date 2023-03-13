@@ -40,7 +40,7 @@ public class WorkoutTest {
 
     @Test
     public void testToString() {
-        String expectedString = "Name: workout1, Date: 2022-03-01, Duration: 30 minutes";
+        String expectedString = "workout1 (2022-03-01): 30 minutes";
         assertEquals(expectedString, workout.toString());
     }
 }

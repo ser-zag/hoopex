@@ -4,10 +4,14 @@ import java.time.Duration;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import persistence.Writable;
+
 /**
  * Represents a history of completed workouts.
  */
-public class WorkoutHistory {
+public class WorkoutHistory implements Writable {
 
     private List<Workout> workouts;
 
@@ -59,6 +63,23 @@ public class WorkoutHistory {
         }
 
         return totalDuration;
+    }
+    @Override
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("workouts", workoutsToJson());
+        return json;
+    }
+
+    // EFFECTS: returns things in this workroom as a JSON array
+    private JSONArray workoutsToJson() {
+        JSONArray jsonArray = new JSONArray();
+
+        for (Workout t : workouts) {
+            jsonArray.put(t.toJson());
+        }
+
+        return jsonArray;
     }
 }
 
