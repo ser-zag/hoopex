@@ -64,6 +64,7 @@ public class WorkoutHistory implements Writable {
 
         return totalDuration;
     }
+
     @Override
     public JSONObject toJson() {
         JSONObject json = new JSONObject();

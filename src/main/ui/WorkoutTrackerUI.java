@@ -7,14 +7,27 @@ import java.util.Scanner;
 import model.Workout;
 import model.WorkoutHistory;
 
+
+import persistence.JsonReader;
+import persistence.JsonWriter;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 public class WorkoutTrackerUI {
+
+    private static final String JSON_STORE = "./data/workouthistory.json";
 
     private WorkoutHistory workoutHistory;
     private Scanner scanner;
+    private JsonWriter jsonWriter;
+    private JsonReader jsonReader;
 
     public WorkoutTrackerUI() {
         workoutHistory = new WorkoutHistory();
         scanner = new Scanner(System.in);
+        jsonWriter = new JsonWriter(JSON_STORE);
+        jsonReader = new JsonReader(JSON_STORE);
     }
 
     @SuppressWarnings("methodlength")
@@ -36,9 +49,15 @@ public class WorkoutTrackerUI {
                     trackProgress();
                     break;
                 case 4:
-                    trackGoal();
+                    saveWorkOutHistory();
                     break;
                 case 5:
+                    loadWorkOutHistory();
+                    break;
+                case 6:
+                    trackGoal();
+                    break;
+                case 7:
                     System.out.println("Exiting program...");
                     break;
                 default:
@@ -46,7 +65,7 @@ public class WorkoutTrackerUI {
                     break;
             }
 
-        } while (choice != 5);
+        } while (choice != 7);
     }
 
     private void printMenu() {
@@ -54,8 +73,10 @@ public class WorkoutTrackerUI {
         System.out.println("1. Add completed workout");
         System.out.println("2. View workout history");
         System.out.println("3. Track progress");
-        System.out.println("4. Track goal");
-        System.out.println("5. Exit program");
+        System.out.println("4. Save progress");
+        System.out.println("5. Load workout history");
+        System.out.println("6. Track goal");
+        System.out.println("7. Exit program");
     }
 
     private void addWorkout() {
@@ -104,6 +125,29 @@ public class WorkoutTrackerUI {
             System.out.println("You are " + remaining + " minutes away from your goal.");
         } else {
             System.out.println("Congratulations, you have reached your goal!");
+        }
+    }
+
+    // EFFECTS: saves the workout history to file
+    private void saveWorkOutHistory() {
+        try {
+            jsonWriter.open();
+            jsonWriter.write(workoutHistory);
+            jsonWriter.close();
+            System.out.println("Saved workout history to " + JSON_STORE);
+        } catch (FileNotFoundException e) {
+            System.out.println("Unable to write to file: " + JSON_STORE);
+        }
+    }
+
+    // MODIFIES: this
+    // EFFECTS: loads workout history from file
+    private void loadWorkOutHistory() {
+        try {
+            workoutHistory = jsonReader.read();
+            System.out.println("Loaded workout history from " + JSON_STORE);
+        } catch (IOException e) {
+            System.out.println("Unable to read from file: " + JSON_STORE);
         }
     }
 }

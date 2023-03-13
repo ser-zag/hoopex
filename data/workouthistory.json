@@ -1,0 +1,12 @@
+{"workouts": [
+    {
+        "date": "2003-09-09",
+        "duration": 100,
+        "name": "zorin"
+    },
+    {
+        "date": "2004-08-08",
+        "duration": 100,
+        "name": "zorin1"
+    }
+]}
