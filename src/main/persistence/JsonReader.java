@@ -21,7 +21,7 @@ public class JsonReader {
         this.source = source;
     }
 
-    // EFFECTS: reads workroom from file and returns it;
+    // EFFECTS: reads workout from file and returns it;
     // throws IOException if an error occurs reading data from file
     public WorkoutHistory read() throws IOException {
         String jsonData = readFile(source);
@@ -58,7 +58,7 @@ public class JsonReader {
     }
 
     // MODIFIES: wo
-    // EFFECTS: parses thingy from JSON object and adds it to workroom
+    // EFFECTS: parses workouts from JSON object and adds it to workroom
     private void addWorkout(WorkoutHistory wo, JSONObject jsonObject) {
         String name = jsonObject.getString("name");
         LocalDate date = LocalDate.parse(jsonObject.getString("date"));
