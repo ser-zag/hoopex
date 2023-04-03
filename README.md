@@ -34,3 +34,12 @@ in one place, which exactly what HoopEx Helper will help you with!
 - As a user, I want to track how far I am from my desired goals
 - As a user, I want to be able to save my basketball workout history to file (if I so choose)
 - As a user, I want to be able to load my basketball workout history from file (if I so choose)
+
+## Instructions for Grader
+- To add workout to the workout history you need to press button "Add Workout" and provide all the parameters of the 
+workout
+- The second from the top right menus contain a Track Progress and Track Goal sections where you 
+intuitively get the desired information
+- To access the visual graph, press the "Track Progress" button
+- In order to save progress, press button "Save Progress"
+- In order to save progress, press button "Load Progress"
