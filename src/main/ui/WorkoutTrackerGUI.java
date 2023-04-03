@@ -5,6 +5,17 @@ import model.WorkoutHistory;
 import persistence.JsonReader;
 import persistence.JsonWriter;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.time.Day;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Date;
 
 public class WorkoutTrackerGUI extends JFrame {
 
@@ -122,10 +134,37 @@ public class WorkoutTrackerGUI extends JFrame {
 
     private class TrackProgressAction implements ActionListener {
         @Override
+        @SuppressWarnings("methodlength")
         public void actionPerformed(ActionEvent e) {
-            String message = "Total workout duration: " + workoutHistory.getTotalDuration() + " minutes.\n";
-            JOptionPane.showMessageDialog(null, message,
-                    "Progress Report", JOptionPane.INFORMATION_MESSAGE);
+            TimeSeriesCollection dataset = new TimeSeriesCollection();
+            TimeSeries series = new TimeSeries("Workout Duration");
+
+            for (Workout workout : workoutHistory.getWorkouts()) {
+                // Convert LocalDate to java.util.Date
+                Date date = java.sql.Date.valueOf(workout.getDate());
+                series.add(new Day(date), workout.getDuration());
+            }
+            dataset.addSeries(series);
+
+            JFreeChart chart = ChartFactory.createTimeSeriesChart(
+                    "Workout Duration vs Date",
+                    "Date",
+                    "Workout Duration (minutes)",
+                    dataset,
+                    true,
+                    true,
+                    false
+            );
+
+            ChartPanel chartPanel = new ChartPanel(chart);
+            chartPanel.setPreferredSize(new Dimension(560, 367));
+
+            JFrame chartFrame = new JFrame("Workout Progress");
+            chartFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            chartFrame.setLocationRelativeTo(null);
+            chartFrame.getContentPane().add(chartPanel);
+            chartFrame.pack();
+            chartFrame.setVisible(true);
         }
     }
 
