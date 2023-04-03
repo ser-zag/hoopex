@@ -22,6 +22,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -39,14 +40,20 @@ public class WorkoutTrackerGUI extends JFrame {
         workoutHistory = new WorkoutHistory();
         jsonWriter = new JsonWriter(JSON_STORE);
         jsonReader = new JsonReader(JSON_STORE);
+        URL imageUrl = getClass().getResource("/tobs.jpg");
+        ImageIcon icon = new ImageIcon(imageUrl);
+        Image backgroundImage = icon.getImage();
 
-        initializeComponents();
+        // Replace the existing `initializeComponents()` call with the one that takes the background image
+        initializeComponents(backgroundImage);
     }
+    // MODIFIES: this
+    // EFFECTS: initializes components and background image
 
     @SuppressWarnings("methodlength")
-    private void initializeComponents() {
+    private void initializeComponents(Image backgroundImage) {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(400, 300);
         setLocationRelativeTo(null);
 
         setLayout(new BorderLayout());
@@ -78,7 +85,8 @@ public class WorkoutTrackerGUI extends JFrame {
         goalMenuItem.addActionListener(new TrackGoalAction());
 
         // Main panel
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        JPanel mainPanel = new ImagePanel(backgroundImage);
+        mainPanel.setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
 
         workoutHistoryArea = new JTextArea();
@@ -96,6 +104,9 @@ public class WorkoutTrackerGUI extends JFrame {
         setVisible(true);
     }
 
+    // MODIFIES: this
+    // EFFECTS: updates w/o area
+
     private void updateWorkoutHistoryArea() {
         StringBuilder sb = new StringBuilder();
         for (Workout workout : workoutHistory.getWorkouts()) {
@@ -103,6 +114,9 @@ public class WorkoutTrackerGUI extends JFrame {
         }
         workoutHistoryArea.setText(sb.toString());
     }
+
+    // MODIFIES: this
+    // EFFECTS: adds w/o action
 
     private class AddWorkoutAction implements ActionListener {
         @Override
@@ -118,6 +132,9 @@ public class WorkoutTrackerGUI extends JFrame {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: loads w/o
+
     private class LoadWorkoutHistoryAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -125,12 +142,19 @@ public class WorkoutTrackerGUI extends JFrame {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: saves w/o
+
     private class SaveWorkoutHistoryAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             saveWorkoutHistory();
         }
     }
+
+
+    // MODIFIES: this
+    // EFFECTS: opens a graph menu
 
     private class TrackProgressAction implements ActionListener {
         @Override
@@ -188,6 +212,9 @@ public class WorkoutTrackerGUI extends JFrame {
         }
     }
 
+    // MODIFIES: this
+    // EFFECTS: loads w/o
+
     private void loadWorkoutHistory() {
         try {
             workoutHistory = jsonReader.read();
@@ -201,6 +228,9 @@ public class WorkoutTrackerGUI extends JFrame {
                     e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    // MODIFIES: this
+    // EFFECTS: saves w/o
 
     private void saveWorkoutHistory() {
         try {
