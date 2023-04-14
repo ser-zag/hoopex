@@ -1,5 +1,8 @@
 package ui;
 
+import model.Event;
+import model.EventLog;
+
 import model.Workout;
 import model.WorkoutHistory;
 import persistence.JsonReader;
@@ -46,6 +49,8 @@ public class WorkoutTrackerGUI extends JFrame {
 
         // Replace the existing `initializeComponents()` call with the one that takes the background image
         initializeComponents(backgroundImage);
+
+        printAllEvents();
     }
     // MODIFIES: this
     // EFFECTS: initializes components and background image
@@ -231,6 +236,13 @@ public class WorkoutTrackerGUI extends JFrame {
 
     // MODIFIES: this
     // EFFECTS: saves w/o
+
+    private static void printAllEvents() {
+        System.out.println("\nEvents logged during this session:");
+        for (Event event : EventLog.getInstance().getAllEvents()) {
+            System.out.println(event);
+        }
+    }
 
     private void saveWorkoutHistory() {
         try {

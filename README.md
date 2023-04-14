@@ -43,3 +43,14 @@ intuitively get the desired information
 - To access the visual graph, press the "Track Progress" button
 - In order to save progress, press button "Save Progress"
 - In order to save progress, press button "Load Progress"
+
+## Phase 4: Task 2
+Events logged during this session: \
+Thu Apr 13 20:25:53 PDT 2023 \
+Workout added to workout history: zorin (2003-09-09): 100 minutes \
+Thu Apr 13 20:25:53 PDT 2023 \
+Workout added to workout history: asdasd (2003-09-09): 200 minutes \
+Thu Apr 13 20:25:53 PDT 2023 \
+Workout added to workout history: zorin3 (2019-09-09): 2000 minutes \
+Thu Apr 13 20:26:10 PDT 2023 \
+Workout added to workout history: zorrin (2015-08-15): 700 minutes 

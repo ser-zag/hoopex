@@ -35,6 +35,7 @@ public class WorkoutHistory implements Writable {
      */
     public void addWorkout(Workout workout) {
         workouts.add(workout);
+        EventLog.getInstance().logEvent(new Event("Workout added to workout history: " + workout.toString()));
     }
 
     /**
