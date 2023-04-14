@@ -1,0 +1,427 @@
+Index: src/main/ui/WorkoutTrackerGUI.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package ui;\n\nimport model.Workout;\nimport model.WorkoutHistory;\nimport persistence.JsonReader;\nimport persistence.JsonWriter;\n\nimport org.jfree.chart.ChartFactory;\nimport org.jfree.chart.ChartPanel;\nimport org.jfree.chart.JFreeChart;\nimport org.jfree.chart.plot.PlotOrientation;\nimport org.jfree.data.category.DefaultCategoryDataset;\nimport org.jfree.data.xy.XYSeries;\nimport org.jfree.data.xy.XYSeriesCollection;\nimport org.jfree.data.time.TimeSeries;\nimport org.jfree.data.time.TimeSeriesCollection;\nimport org.jfree.data.time.Day;\n\nimport javax.swing.*;\nimport java.awt.*;\nimport java.awt.event.ActionEvent;\nimport java.awt.event.ActionListener;\nimport java.io.FileNotFoundException;\nimport java.io.IOException;\nimport java.net.URL;\nimport java.time.LocalDate;\nimport java.util.Date;\n\npublic class WorkoutTrackerGUI extends JFrame {\n\n    private static final String JSON_STORE = \"./data/workouthistory.json\";\n\n    private WorkoutHistory workoutHistory;\n    private JsonWriter jsonWriter;\n    private JsonReader jsonReader;\n    private JTextArea workoutHistoryArea;\n\n    public WorkoutTrackerGUI() {\n        super(\"Basketball Workout Tracker\");\n        workoutHistory = new WorkoutHistory();\n        jsonWriter = new JsonWriter(JSON_STORE);\n        jsonReader = new JsonReader(JSON_STORE);\n        URL imageUrl = getClass().getResource(\"/tobs.jpg\");\n        ImageIcon icon = new ImageIcon(imageUrl);\n        Image backgroundImage = icon.getImage();\n\n        // Replace the existing `initializeComponents()` call with the one that takes the background image\n        initializeComponents(backgroundImage);\n    }\n    // MODIFIES: this\n    // EFFECTS: initializes components and background image\n\n    @SuppressWarnings(\"methodlength\")\n    private void initializeComponents(Image backgroundImage) {\n        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);\n        setSize(400, 300);\n        setLocationRelativeTo(null);\n\n        setLayout(new BorderLayout());\n\n        // Menu bar\n        JMenuBar menuBar = new JMenuBar();\n        setJMenuBar(menuBar);\n\n        JMenu fileMenu = new JMenu(\"File\");\n        menuBar.add(fileMenu);\n\n        JMenuItem loadMenuItem = new JMenuItem(\"Load workout history\");\n        fileMenu.add(loadMenuItem);\n        loadMenuItem.addActionListener(new LoadWorkoutHistoryAction());\n\n        JMenuItem saveMenuItem = new JMenuItem(\"Save workout history\");\n        fileMenu.add(saveMenuItem);\n        saveMenuItem.addActionListener(new SaveWorkoutHistoryAction());\n\n        JMenu trackMenu = new JMenu(\"Track\");\n        menuBar.add(trackMenu);\n\n        JMenuItem progressMenuItem = new JMenuItem(\"Track progress\");\n        trackMenu.add(progressMenuItem);\n        progressMenuItem.addActionListener(new TrackProgressAction());\n\n        JMenuItem goalMenuItem = new JMenuItem(\"Track goal\");\n        trackMenu.add(goalMenuItem);\n        goalMenuItem.addActionListener(new TrackGoalAction());\n\n        // Main panel\n        JPanel mainPanel = new ImagePanel(backgroundImage);\n        mainPanel.setLayout(new BorderLayout());\n        add(mainPanel, BorderLayout.CENTER);\n\n        workoutHistoryArea = new JTextArea();\n        workoutHistoryArea.setEditable(false);\n        mainPanel.add(new JScrollPane(workoutHistoryArea), BorderLayout.CENTER);\n\n        // Bottom panel\n        JPanel bottomPanel = new JPanel(new FlowLayout());\n        mainPanel.add(bottomPanel, BorderLayout.SOUTH);\n\n        JButton addWorkoutButton = new JButton(\"Add Workout\");\n        bottomPanel.add(addWorkoutButton);\n        addWorkoutButton.addActionListener(new AddWorkoutAction());\n\n        setVisible(true);\n    }\n\n    // MODIFIES: this\n    // EFFECTS: updates w/o area\n\n    private void updateWorkoutHistoryArea() {\n        StringBuilder sb = new StringBuilder();\n        for (Workout workout : workoutHistory.getWorkouts()) {\n            sb.append(workout.toString()).append(\"\\n\");\n        }\n        workoutHistoryArea.setText(sb.toString());\n    }\n\n    // MODIFIES: this\n    // EFFECTS: adds w/o action\n\n    private class AddWorkoutAction implements ActionListener {\n        @Override\n        public void actionPerformed(ActionEvent e) {\n            String name = JOptionPane.showInputDialog(\"Enter workout name:\");\n            String dateStr = JOptionPane.showInputDialog(\"Enter workout date (yyyy-mm-dd):\");\n            LocalDate date = LocalDate.parse(dateStr);\n            int duration = Integer.parseInt(JOptionPane.showInputDialog(\"Enter workout duration (in minutes):\"));\n\n            Workout workout = new Workout(name, date, duration);\n            workoutHistory.addWorkout(workout);\n            updateWorkoutHistoryArea();\n        }\n    }\n\n    // MODIFIES: this\n    // EFFECTS: loads w/o\n\n    private class LoadWorkoutHistoryAction implements ActionListener {\n        @Override\n        public void actionPerformed(ActionEvent e) {\n            loadWorkoutHistory();\n        }\n    }\n\n    // MODIFIES: this\n    // EFFECTS: saves w/o\n\n    private class SaveWorkoutHistoryAction implements ActionListener {\n        @Override\n        public void actionPerformed(ActionEvent e) {\n            saveWorkoutHistory();\n        }\n    }\n\n\n    // MODIFIES: this\n    // EFFECTS: opens a graph menu\n\n    private class TrackProgressAction implements ActionListener {\n        @Override\n        @SuppressWarnings(\"methodlength\")\n        public void actionPerformed(ActionEvent e) {\n            TimeSeriesCollection dataset = new TimeSeriesCollection();\n            TimeSeries series = new TimeSeries(\"Workout Duration\");\n\n            for (Workout workout : workoutHistory.getWorkouts()) {\n                // Convert LocalDate to java.util.Date\n                Date date = java.sql.Date.valueOf(workout.getDate());\n                series.add(new Day(date), workout.getDuration());\n            }\n            dataset.addSeries(series);\n\n            JFreeChart chart = ChartFactory.createTimeSeriesChart(\n                    \"Workout Duration vs Date\",\n                    \"Date\",\n                    \"Workout Duration (minutes)\",\n                    dataset,\n                    true,\n                    true,\n                    false\n            );\n\n            ChartPanel chartPanel = new ChartPanel(chart);\n            chartPanel.setPreferredSize(new Dimension(560, 367));\n\n            JFrame chartFrame = new JFrame(\"Workout Progress\");\n            chartFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);\n            chartFrame.setLocationRelativeTo(null);\n            chartFrame.getContentPane().add(chartPanel);\n            chartFrame.pack();\n            chartFrame.setVisible(true);\n        }\n    }\n\n    private class TrackGoalAction implements ActionListener {\n        @Override\n        public void actionPerformed(ActionEvent e) {\n            int goalDuration = Integer.parseInt(JOptionPane.showInputDialog(\"Enter your weekly\"\n                    +\n                    \" workout duration goal (in minutes):\"));\n            int progressDuration = workoutHistory.getTotalDuration();\n            String message;\n            if (progressDuration >= goalDuration) {\n                message = \"Congratulations! You have reached your weekly workout goal.\\n\";\n            } else {\n                message = \"Keep going! You are \" + (goalDuration - progressDuration)\n                        +\n                        \" minutes away from your weekly workout goal.\\n\";\n            }\n            JOptionPane.showMessageDialog(null, message,\n                    \"Goal Tracker\", JOptionPane.INFORMATION_MESSAGE);\n        }\n    }\n\n    // MODIFIES: this\n    // EFFECTS: loads w/o\n\n    private void loadWorkoutHistory() {\n        try {\n            workoutHistory = jsonReader.read();\n            updateWorkoutHistoryArea();\n            JOptionPane.showMessageDialog(null, \"Loaded workout history from \"\n                    +\n                    JSON_STORE, \"Load\", JOptionPane.INFORMATION_MESSAGE);\n        } catch (IOException e) {\n            JOptionPane.showMessageDialog(null, \"Error loading workout history: \"\n                    +\n                    e.getMessage(), \"Error\", JOptionPane.ERROR_MESSAGE);\n        }\n    }\n\n    // MODIFIES: this\n    // EFFECTS: saves w/o\n\n    private void saveWorkoutHistory() {\n        try {\n            jsonWriter.open();\n            jsonWriter.write(workoutHistory);\n            jsonWriter.close();\n            JOptionPane.showMessageDialog(null, \"Saved workout history to \" + JSON_STORE,\n                    \"Save\", JOptionPane.INFORMATION_MESSAGE);\n        } catch (FileNotFoundException e) {\n            JOptionPane.showMessageDialog(null, \"Error saving workout history: \"\n                    +\n                    e.getMessage(), \"Error\", JOptionPane.ERROR_MESSAGE);\n        }\n    }\n\n    public static void main(String[] args) {\n        new WorkoutTrackerGUI();\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/ui/WorkoutTrackerGUI.java b/src/main/ui/WorkoutTrackerGUI.java
+--- a/src/main/ui/WorkoutTrackerGUI.java	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ b/src/main/ui/WorkoutTrackerGUI.java	(date 1681441745101)
+@@ -1,10 +1,16 @@
+ package ui;
+ 
++import model.Event;
++import model.EventLog;
+ import model.Workout;
+ import model.WorkoutHistory;
+ import persistence.JsonReader;
+ import persistence.JsonWriter;
+ 
++
++import java.awt.event.WindowAdapter;
++import java.awt.event.WindowEvent;
++
+ import org.jfree.chart.ChartFactory;
+ import org.jfree.chart.ChartPanel;
+ import org.jfree.chart.JFreeChart;
+@@ -40,20 +46,14 @@
+         workoutHistory = new WorkoutHistory();
+         jsonWriter = new JsonWriter(JSON_STORE);
+         jsonReader = new JsonReader(JSON_STORE);
+-        URL imageUrl = getClass().getResource("/tobs.jpg");
+-        ImageIcon icon = new ImageIcon(imageUrl);
+-        Image backgroundImage = icon.getImage();
++    }
+ 
+-        // Replace the existing `initializeComponents()` call with the one that takes the background image
+-        initializeComponents(backgroundImage);
+-    }
+-    // MODIFIES: this
+-    // EFFECTS: initializes components and background image
++
+ 
+     @SuppressWarnings("methodlength")
+     private void initializeComponents(Image backgroundImage) {
+         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+-        setSize(400, 300);
++        setSize(500, 400);
+         setLocationRelativeTo(null);
+ 
+         setLayout(new BorderLayout());
+@@ -231,6 +231,13 @@
+ 
+     // MODIFIES: this
+     // EFFECTS: saves w/o
++    private static void printAllEvents() {
++        System.out.println("\nEvents logged during this session:");
++        for (Event event : EventLog.getInstance().getAllEvents()) {
++            System.out.println(event);
++        }
++
++    }
+ 
+     private void saveWorkoutHistory() {
+         try {
+Index: src/main/ui/Main.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package ui;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        WorkoutTrackerUI ui = new WorkoutTrackerUI();\n        ui.start();\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/ui/Main.java b/src/main/ui/Main.java
+--- a/src/main/ui/Main.java	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ b/src/main/ui/Main.java	(date 1681441745101)
+@@ -1,9 +1,12 @@
+ package ui;
+ 
++import model.Event;
++import model.EventLog;
+ 
+ public class Main {
+     public static void main(String[] args) {
+         WorkoutTrackerUI ui = new WorkoutTrackerUI();
+         ui.start();
+     }
++
+ }
+Index: src/main/model/WorkoutHistory.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package model;\n\nimport java.time.Duration;\nimport java.util.List;\nimport java.util.ArrayList;\n\nimport org.json.JSONArray;\nimport org.json.JSONObject;\nimport persistence.Writable;\n\n/**\n * Represents a history of completed workouts.\n */\npublic class WorkoutHistory implements Writable {\n\n    private List<Workout> workouts;\n\n    /**\n     * Creates a new workout history with an empty list of workouts.\n     *\n     * REQUIRES: none\n     * MODIFIES: this\n     * EFFECTS: creates a new workout history with an empty list of workouts\n     */\n    public WorkoutHistory() {\n        workouts = new ArrayList<>();\n    }\n\n    /**\n     * Adds a completed workout to this history.\n     *\n     * REQUIRES: workout is not null\n     * MODIFIES: this\n     * EFFECTS: adds the given workout to this history\n     */\n    public void addWorkout(Workout workout) {\n        workouts.add(workout);\n    }\n\n    /**\n     * Returns the list of completed workouts in this history.\n     *\n     * REQUIRES: none\n     * MODIFIES: none\n     * EFFECTS: returns the list of completed workouts in this history\n     */\n\n    public List<Workout> getWorkouts() {\n        return workouts;\n    }\n\n    /**\n     * Returns the total duration of all completed workouts in this history.\n     *\n     * REQUIRES: none\n     * MODIFIES: none\n     * EFFECTS: returns the total duration of all completed workouts in this history\n     */\n    public int getTotalDuration() {\n        int totalDuration = 0;\n\n        for (Workout workout : workouts) {\n            totalDuration += workout.getDuration();\n        }\n\n        return totalDuration;\n    }\n\n    @Override\n    public JSONObject toJson() {\n        JSONObject json = new JSONObject();\n        json.put(\"workouts\", workoutsToJson());\n        return json;\n    }\n\n    // EFFECTS: returns things in this workroom as a JSON array\n    private JSONArray workoutsToJson() {\n        JSONArray jsonArray = new JSONArray();\n\n        for (Workout t : workouts) {\n            jsonArray.put(t.toJson());\n        }\n\n        return jsonArray;\n    }\n}\n\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/model/WorkoutHistory.java b/src/main/model/WorkoutHistory.java
+--- a/src/main/model/WorkoutHistory.java	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ b/src/main/model/WorkoutHistory.java	(date 1681441745101)
+@@ -4,6 +4,8 @@
+ import java.util.List;
+ import java.util.ArrayList;
+ 
++
++
+ import org.json.JSONArray;
+ import org.json.JSONObject;
+ import persistence.Writable;
+@@ -35,6 +37,7 @@
+      */
+     public void addWorkout(Workout workout) {
+         workouts.add(workout);
++        EventLog.getInstance().logEvent(new Event("Workout added: " + workout.toString()));
+     }
+ 
+     /**
+Index: src/main/ui/ImagePanel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/ui/ImagePanel.java b/src/main/ui/ImagePanel.java
+deleted file mode 100644
+--- a/src/main/ui/ImagePanel.java	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ /dev/null	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
+@@ -1,19 +0,0 @@
+-package ui;
+-
+-import javax.swing.*;
+-import java.awt.*;
+-
+-public class ImagePanel extends JPanel {
+-    private Image backgroundImage;
+-
+-    public ImagePanel(Image backgroundImage) {
+-        this.backgroundImage = backgroundImage;
+-        setLayout(new BorderLayout());
+-    }
+-
+-    @Override
+-    protected void paintComponent(Graphics g) {
+-        super.paintComponent(g);
+-        g.drawImage(backgroundImage, 0, 0, this.getWidth(), this.getHeight(), this);
+-    }
+-}
+Index: data/workouthistory.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\"workouts\": [\n    {\n        \"date\": \"2003-09-09\",\n        \"duration\": 100,\n        \"name\": \"zorin\"\n    },\n    {\n        \"date\": \"2003-09-09\",\n        \"duration\": 200,\n        \"name\": \"asdasd\"\n    }\n]}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/workouthistory.json b/data/workouthistory.json
+--- a/data/workouthistory.json	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ b/data/workouthistory.json	(date 1681441745100)
+@@ -5,8 +5,38 @@
+         "name": "zorin"
+     },
+     {
+-        "date": "2003-09-09",
+-        "duration": 200,
++        "date": "2000-01-01",
++        "duration": 122,
++        "name": "zsdasdas"
++    },
++    {
++        "date": "2010-10-10",
++        "duration": 120,
++        "name": "sadasd"
++    },
++    {
++        "date": "2001-01-01",
++        "duration": 100,
++        "name": "sadasd"
++    },
++    {
++        "date": "2009-09-09",
++        "duration": 11,
++        "name": "zoriiiin"
++    },
++    {
++        "date": "2009-01-08",
++        "duration": 230,
++        "name": "2001-09-02"
++    },
++    {
++        "date": "2001-02-07",
++        "duration": 123,
++        "name": "asdasd"
++    },
++    {
++        "date": "2015-09-10",
++        "duration": 150,
+         "name": "asdasd"
+     }
+ ]}
+\ No newline at end of file
+Index: README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># HoopEx Helper\n\n## What will this application do?\n- Store basketball related exercise activity like the number of made free throws, 3 point shots, dribble movements, e.t.c. \n- Visualize the history of exercising sessions via charts and graphs \n- Track the results and comparing current achievements with a goal set by the user\n- Provide basketball related exercise plans\n\n## For whom this application may be helpful?\n- For everyone who wants to improve their basketball exercise productivity\n- For people who like to track their basketball activity\n- For people who are willing to possible learn new basketball exercises \n\n## Why I got interested in creating this project?\nI am myself is a basketball fan and I like to exercise \nand learn new basketball movements, however I \nquickly realized that it is extremely hard to \nkeep track of the progress without writing it down or \nexternalizing it in any other digital way. \nTherefore, I started using a combination of regular notes \nand Microsoft Excel. Although this combination of apps allowed me to \nachieve desired outcomes, I also realized that I've spent too much time\njumping around different apps and moving information about \nworkouts from one app to another (also watching a lot of YouTube to learn \nnew exercises). And thus, I came up with an idea that it would be extremely \nconvenient to have an application that has all of these features \nin one place, which exactly what HoopEx Helper will help you with!\n\n\n## User Stories\n- As a user, I want to add a completed basketball workout to my workout history\n- As a user, I want to view my workout history\n- As a user, I want to track the progress of my workout history\n- As a user, I want to track how far I am from my desired goals\n- As a user, I want to be able to save my basketball workout history to file (if I so choose)\n- As a user, I want to be able to load my basketball workout history from file (if I so choose)\n\n## Instructions for Grader\n- To add workout to the workout history you need to press button \"Add Workout\" and provide all the parameters of the \nworkout\n- The second from the top right menus contain a Track Progress and Track Goal sections where you \nintuitively get the desired information\n- To access the visual graph, press the \"Track Progress\" button\n- In order to save progress, press button \"Save Progress\"\n- In order to save progress, press button \"Load Progress\"
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/README.md b/README.md
+--- a/README.md	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ b/README.md	(date 1681441745086)
+@@ -42,4 +42,6 @@
+ intuitively get the desired information
+ - To access the visual graph, press the "Track Progress" button
+ - In order to save progress, press button "Save Progress"
+-- In order to save progress, press button "Load Progress"
+\ No newline at end of file
++- In order to save progress, press button "Load Progress"
++
++## Phase 4: Task 2
+Index: out/production/Project-Starter/workouthistory.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\"workouts\": [\n    {\n        \"date\": \"2003-09-09\",\n        \"duration\": 100,\n        \"name\": \"zorin\"\n    },\n    {\n        \"date\": \"2003-09-09\",\n        \"duration\": 200,\n        \"name\": \"asdasd\"\n    }\n]}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/out/production/Project-Starter/workouthistory.json b/out/production/Project-Starter/workouthistory.json
+--- a/out/production/Project-Starter/workouthistory.json	(revision 73ab44f3fbd1033ff81100e05626d80ddb21a5fd)
++++ b/out/production/Project-Starter/workouthistory.json	(date 1681441745100)
+@@ -5,8 +5,38 @@
+         "name": "zorin"
+     },
+     {
+-        "date": "2003-09-09",
+-        "duration": 200,
++        "date": "2000-01-01",
++        "duration": 122,
++        "name": "zsdasdas"
++    },
++    {
++        "date": "2010-10-10",
++        "duration": 120,
++        "name": "sadasd"
++    },
++    {
++        "date": "2001-01-01",
++        "duration": 100,
++        "name": "sadasd"
++    },
++    {
++        "date": "2009-09-09",
++        "duration": 11,
++        "name": "zoriiiin"
++    },
++    {
++        "date": "2009-01-08",
++        "duration": 230,
++        "name": "2001-09-02"
++    },
++    {
++        "date": "2001-02-07",
++        "duration": 123,
++        "name": "asdasd"
++    },
++    {
++        "date": "2015-09-10",
++        "duration": 150,
+         "name": "asdasd"
+     }
+ ]}
+\ No newline at end of file
+Index: src/main/model/EventLog.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/model/EventLog.java b/src/main/model/EventLog.java
+new file mode 100644
+--- /dev/null	
++++ b/src/main/model/EventLog.java	
+@@ -0,0 +1,75 @@
++package model;
++
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.Iterator;
++import java.util.List;
++
++/**
++ * Represents a log of alarm system events.
++ * We use the Singleton Design Pattern to ensure that there is only
++ * one EventLog in the system and that the system has global access
++ * to the single instance of the EventLog.
++ */
++public class EventLog implements Iterable<Event> {
++    /**
++     * the only EventLog in the system (Singleton Design Pattern)
++     */
++    private static EventLog theLog;
++    private Collection<Event> events;
++
++    /**
++     * Prevent external construction.
++     * (Singleton Design Pattern).
++     */
++    private EventLog() {
++        events = new ArrayList<Event>();
++    }
++
++    /**
++     * Gets instance of EventLog - creates it
++     * if it doesn't already exist.
++     * (Singleton Design Pattern)
++     *
++     * @return instance of EventLog
++     */
++    public static EventLog getInstance() {
++        if (theLog == null)
++            theLog = new EventLog();
++
++        return theLog;
++    }
++
++    /**
++     * Adds an event to the event log.
++     *
++     * @param e the event to be added
++     */
++    public void logEvent(Event e) {
++        events.add(e);
++    }
++
++    /**
++     * Clears the event log and logs the event.
++     */
++    public void clear() {
++        events.clear();
++        logEvent(new Event("Event log cleared."));
++    }
++
++    public List<Event> getAllEvents() {
++        return new ArrayList<>(events);
++    }
++
++    private static void printAllEvents() {
++        System.out.println("\nEvents logged during this session:");
++        for (Event event : EventLog.getInstance().getAllEvents()) {
++            System.out.println(event);
++        }
++    }
++
++    @Override
++    public Iterator<Event> iterator() {
++        return events.iterator();
++    }
++}
+Index: src/main/model/Event.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/model/Event.java b/src/main/model/Event.java
+new file mode 100644
+--- /dev/null	
++++ b/src/main/model/Event.java	
+@@ -0,0 +1,64 @@
++package model;
++
++import java.util.Calendar;
++import java.util.Date;
++
++
++/**
++ * Represents an alarm system event.
++ */
++public class Event {
++    private static final int HASH_CONSTANT = 13;
++    private Date dateLogged;
++    private String description;
++
++    /**
++     * Creates an event with the given description
++     * and the current date/time stamp.
++     * @param description  a description of the event
++     */
++    public Event(String description) {
++        dateLogged = Calendar.getInstance().getTime();
++        this.description = description;
++    }
++
++    /**
++     * Gets the date of this event (includes time).
++     * @return  the date of the event
++     */
++    public Date getDate() {
++        return dateLogged;
++    }
++
++    /**
++     * Gets the description of this event.
++     * @return  the description of the event
++     */
++    public String getDescription () {
++        return description;
++    }
++
++    @Override
++    public boolean equals(Object other) {
++        if (other == null)
++            return false;
++
++        if (other.getClass() != this.getClass())
++            return false;
++
++        Event otherEvent = (Event) other;
++
++        return (this.dateLogged.equals(otherEvent.dateLogged) &&
++                this.description.equals(otherEvent.description));
++    }
++
++    @Override
++    public int hashCode() {
++        return (HASH_CONSTANT * dateLogged.hashCode() + description.hashCode());
++    }
++
++    @Override
++    public String toString() {
++        return dateLogged.toString() + "\n" + description;
++    }
++}
+\ No newline at end of file
