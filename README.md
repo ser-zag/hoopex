@@ -54,3 +54,10 @@ Thu Apr 13 20:25:53 PDT 2023 \
 Workout added to workout history: zorin3 (2019-09-09): 2000 minutes \
 Thu Apr 13 20:26:10 PDT 2023 \
 Workout added to workout history: zorrin (2015-08-15): 700 minutes 
+
+## Phase 4: Task 3
+If I had more time, beyond adding more features I would definitely improve and simplify the architecture of program. 
+First, I would simplify the GUI class by using the methods used in UI and model classes (extending). 
+This would definitely help to simplify the whole project. Moreover, if I had more time I would probably play 
+with design aspects of the application beyond the graph, by adding some images (which I actually tried to do as 
+a background of application, but it didn't work).

@@ -53,4 +53,24 @@ public class EventLogTest {
         assertEquals("Event log cleared.", itr.next().getDescription());
         assertFalse(itr.hasNext());
     }
+
+    @Test
+    void testGetAllEvents() {
+        // Prepare some sample events
+
+
+        // Log the events
+        EventLog eventLog = EventLog.getInstance();
+        eventLog.logEvent(e1);
+        eventLog.logEvent(e2);
+        eventLog.logEvent(e3);
+
+        // Get all events and verify their content
+        List<Event> events = eventLog.getAllEvents();
+        assertEquals(6, events.size());
+        assertEquals(e1, events.get(0));
+        assertEquals(e2, events.get(1));
+        assertEquals(e3, events.get(2));
+    }
+
 }
